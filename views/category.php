@@ -1,5 +1,26 @@
+<?php
+/**
+* @file view/index.php
+* @ingroup gino-gallery
+* @brief Template per la vista elementi multimediali categoria
+*
+* Variabili disponibili:
+* - **section_id**: attributo id section
+* - **title**: titolo
+* - **images**: array di immagini @reg \Gino\App\Gallery\Image
+* - **videos**: array di video @reg \Gino\App\Gallery\Video
+* - **ctg**: oggetto categoria @ref \Gino\App\Gallery\Category
+*
+* @version 0.1.0
+* @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
+* @authors Marco Guidotti guidottim@gmail.com
+* @authors abidibo abidibo@gmail.com
+*/
+?>
+<? namespace Gino\App\Gallery; ?>
+<? //@cond no-doxygen ?>
 <section id="gallery-category">
-  <h1><?= htmlChars($category->ml('name')) ?></h1>
+  <h1><?= \Gino\htmlChars($category->ml('name')) ?></h1>
   <div id="gallery-container"></div>
 
   <script>
@@ -15,8 +36,8 @@
         <? endif ?>
             video_width: '<?= $video->width ?>',
             video_height: '<?= $video->height ?>',
-            title: '<?= jsVar($video->ml('name')) ?>', 
-            description: '<?= jsVar($video->ml('description')) ?>',
+            title: '<?= \Gino\jsVar($video->ml('name')) ?>', 
+            description: '<?= \Gino\jsVar($video->ml('description')) ?>',
             credits: ''
         },
     <? endforeach ?>
@@ -24,8 +45,8 @@
         {
             thumb: '<?= $image->thumbPath() ?>', 
             img: '<?= $image->path() ?>', 
-            title: '<?= jsVar($image->ml('name')) ?>', 
-            description: '<?= jsVar($image->ml('description')) ?>',
+            title: '<?= \Gino\jsVar($image->ml('name')) ?>', 
+            description: '<?= \Gino\jsVar($image->ml('description')) ?>',
             credits: ''
         },
     <? endforeach ?>
@@ -34,3 +55,4 @@
   </script>
 
 </section>
+<? // @endcond ?>

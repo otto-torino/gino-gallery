@@ -1,21 +1,79 @@
 <?php
+/**
+ * @file class_gallery.php
+ * @brief Contiene la definizione ed implementazione della classe \ref news.
+ *
+ * @version 0.1.0
+ * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
+ * @authors Marco Guidotti guidottim@gmail.com
+ * @authors abidibo abidibo@gmail.com
+ */
 
-require_once('class.GalleryImage.php');
-require_once('class.GalleryCategory.php');
-require_once('class.GalleryVideo.php');
+namespace Gino\App\Gallery;
 
-class gallery extends Controller {
+use \Gino\View;
+use \Gino\Loader;
+use \Gino\AdminTable;
 
+/** \mainpage Caratteristiche e output disponibili per i template e le voci di menu
+ *
+ * CARATTERISTICHE
+ *
+ * Modulo di gestione gallerie di immagini e video
+ *
+ * OUTPUTS
+ * - box di presentazione per home page
+ * - showcase position fixed su sfondo
+ * - Navigazione elementi multimediali di una categoria
+ */
+require_once('class.Image.php');
+require_once('class.Category.php');
+require_once('class.Video.php');
+
+/**
+ * @defgroup gino-gallery
+ * Modulo di gestione gallerie multimediali
+ *
+ * Il modulo contiene anche dei css, javascript e file di configurazione.
+ *
+ */
+
+/**
+ * \ingroup gino-gallery
+ * Classe per la gestione gallerie di elementi multimediali, immagini e video.
+ *
+ * Gli output disponibili sono:
+ *
+ * - box di presentazione per home page
+ * - showcase position fixed su sfondo
+ * - Navigazione elementi multimediali di una categoria
+ * 
+ * @version 0.1.0
+ * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
+ * @authors Marco Guidotti guidottim@gmail.com
+ * @authors abidibo abidibo@gmail.com
+ */
+class gallery extends \Gino\Controller {
+
+    /**
+     * @brief Costruttore
+     * @return nuova istanza
+     */
     function __construct() {
         parent::__construct();
     }
 
+    /**
+     * @brief Restituisce alcune proprietà della classe utili per la generazione di nuove istanze
+     * @return lista delle proprietà utilizzate per la creazione di istanze di tipo news
+     */
     public static function getClassElements() {
 
         return array(
             "tables"=>array(
                 'gallery_category', 
                 'gallery_image', 
+                'gallery_video', 
             ),
             "css"=>array(
                 'gallery.css'
@@ -24,20 +82,23 @@ class gallery extends Controller {
                 'box.php' => _('Template per l\'inserimento della pagine nel layout'),
                 'category.php' => _('Galleria immagini appartenenti a categoria'),
                 'showcase.php' => _('Showcase fisso su sfondo'),
+                'index.php' => _('Lista gallerie'),
             ),
             "folderStructure"=>array (
-                CONTENT_DIR.OS.'gallery'=> null
+                CONTENT_DIR.OS.'gallery'=> array(
+                    'img' => null,
+                    'thumb' => null
+                )
             )
         );
     }
 
     /**
-     * Definizione dei metodi pubblici che forniscono un output per il front-end 
+     * @brief Definizione dei metodi pubblici che forniscono un output per il front-end 
      * 
      * Questo metodo viene letto dal motore di generazione dei layout e dal motore di generazione di voci di menu
      * per presentare una lista di output associati all'istanza di classe. 
      * 
-     * @static
      * @access public
      * @return array[string]array
      */
@@ -46,34 +107,76 @@ class gallery extends Controller {
         $list = array(
             "box" => array("label"=>_("Box presentazione gallerie"), "permissions"=>array()),
             "showcase" => array("label"=>_("Showcase fisso su sfondo"), "permissions"=>array()),
+            "index" => array("label"=>_("Lista gallerie"), "permissions"=>array()),
         );
 
         return $list;
     }
 
+    /*+
+     * @brief Vista lista gallerie
+     * @return lista gallerie
+     */
+    public function index() {
+
+        $this->_registry->addCss($this->_class_www."/gallery.css");
+
+        $view = new View($this->_view_dir);
+
+        $view->setViewTpl('index');
+
+        $categories = Category::objects();
+
+        foreach($categories as $c) {
+            $images = Image::objects(null, array('where' => "category='".$c->id."'"));
+            $videos = Video::objects(null, array('where' => "category='".$c->id."'"));
+            if(count($images) or count($videos)) {
+                $ctgs[] = array(
+                    'name' => \Gino\htmlChars($c->name),
+                    'description' => \Gino\htmlChars($c->description),
+                    'items' => count($images) + count($videos),
+                    'url' => $c->getUrl(),
+                    'thumb' => isset($images[0]) ? $images[0]->thumbPath(200, 200) : $videos[0]->thumbPath(200, 200)
+                );
+            }
+        }
+
+        $dict = array(
+            'section_id' => 'gallery-index',
+            'title' => _('Gallerie'),
+            'ctgs' => $ctgs,
+        );
+
+        return $view->render($dict);
+    }
+
+    /**
+     * @brief Vista box di presentazione home page
+     * @return box di presentazione
+     */
     public function box() {
 
         $this->_registry->addCss($this->_class_www."/gallery.css");
 
-        $view = new view($this->_view_dir);
+        $view = new View($this->_view_dir);
 
         $view->setViewTpl('box');
 
         $ctgs = array();
 
-        $images = GalleryImage::objects();
-        $videos = GalleryVideo::objects();
-        $categories = GalleryCategory::objects();
+        $images = Image::objects();
+        $videos = Video::objects();
+        $categories = Category::objects();
 
         foreach($categories as $c) {
-                $images = GalleryImage::objects(null, array('where' => "category='".$c->id."'", "limit" => array(0, 1)));
-                if(count($images)) {
-                        $ctgs[] = array(
-                                'name' => htmlChars($c->name),
-                                'url' => $c->getUrl(),
-                                'cover' => $images[0]
-                        );
-                }
+            $images = Image::objects(null, array('where' => "category='".$c->id."'", "limit" => array(0, 1)));
+            if(count($images)) {
+                $ctgs[] = array(
+                    'name' => \Gino\htmlChars($c->name),
+                    'url' => $c->getUrl(),
+                    'cover' => $images[0]
+                );
+            }
         }
 
         $dict = array(
@@ -85,14 +188,19 @@ class gallery extends Controller {
         return $view->render($dict);
     }
 
+    /**
+     * @brief Vista vetrina galleria
+     * @description Lo showcase viene renderizzato in position fixed sullo sfondo
+     * @return showcase
+     */
     public function showcase() {
 
         $this->_registry->addJs($this->_class_www."/gallery.js");
         $this->_registry->addCss($this->_class_www."/gallery.css");
 
-        $view = new view($this->_view_dir);
+        $view = new View($this->_view_dir);
 
-        $ctgs = GalleryCategory::objects(null, array('where' => "showcase='1'", 'order' => 'name ASC'));
+        $ctgs = Category::objects(null, array('where' => "showcase='1'", 'order' => 'name ASC'));
         $active_ctg = count($ctgs and $ctgs) ? $ctgs[0] : null;
 
         $view->setViewTpl('showcase');
@@ -105,23 +213,27 @@ class gallery extends Controller {
         return $view->render($dict);
     }
 
+    /**
+     * @brief Vista elementi multimediali appartenenti ad una categoria
+     * @return vista elementi multimediali categoria
+     */
     public function category() {
 
         $this->_registry->addJs($this->_class_www."/moogallery.js");
         $this->_registry->addCss($this->_class_www."/gallery.css");
         $this->_registry->addCss($this->_class_www."/moogallery.css");
 
-        $view = new view($this->_view_dir);
+        $view = new View($this->_view_dir);
 
-        $id = cleanVar($_GET, 'id', 'int', '');
+        $id = \Gino\cleanVar($_GET, 'id', 'int', '');
 
         $view->setViewTpl('category');
 
-        $category = new GalleryCategory($id);
-        $images = GalleryImage::objects(null, array(
+        $category = new Category($id);
+        $images = Image::objects(null, array(
             'where' => "category='".$category->id."'"
         ));
-        $videos = GalleryVideo::objects(null, array(
+        $videos = Video::objects(null, array(
             'where' => "category='".$category->id."'"
         ));
         $dict = array(
@@ -136,13 +248,17 @@ class gallery extends Controller {
 
     }
 
+    /**
+     * @brief Interfaccia di amministrazione modulo
+     * @return interfaccia amministrazione
+     */
     public function manageGallery() {
 
         $this->requirePerm('can_admin');
 
-        loader::import('class', 'AdminTable');
+        Loader::import('class', '\Gino\AdminTable');
 
-        $block = cleanVar($_GET, 'block', 'string', '');
+        $block = \Gino\cleanVar($_GET, 'block', 'string', '');
 
         $link_frontend = "<a href=\"".$this->_home."?evt[$this->_instance_name-manageGallery]&block=frontend\">"._("Frontend")."</a>";
         $link_ctg = "<a href=\"".$this->_home."?evt[$this->_instance_name-manageGallery]&block=ctg\">"._("Categorie")."</a>";
@@ -173,20 +289,21 @@ class gallery extends Controller {
             'content' => $buffer
         );
 
-        $view = new view();
-        $view->setViewTpl('tab');
-
+        $view = new View(null, 'tab');
         return $view->render($dict);
 
-    
     }
 
+    /**
+     * @brief Interfaccia di amministrazione immagini
+     * @return interfaccia di amministrazione
+     */
     private function manageImage() {
 
-        $admin_table = new adminTable($this, array());
+        $admin_table = new AdminTable($this, array());
 
         $buffer = $admin_table->backOffice(
-            'galleryImage', 
+            'Image',
             array(
                 'list_display' => array('id', 'category', 'name',),
                 'list_title' => _("Elenco immagini"), 
@@ -200,9 +317,13 @@ class gallery extends Controller {
         return $buffer;
     }
 
+    /**
+     * @brief Interfaccia di amministrazione video
+     * @return interfaccia di amministrazione
+     */
     private function manageVideo() {
 
-        $admin_table = new adminTable($this, array());
+        $admin_table = new AdminTable($this, array());
 
         if(function_exists('curl_version')) {
             $form_description = _('Le thumbnail dei video sono recuperate automaticamente da youtube/vimeo se non viene caricato un file nel campo thumb.');
@@ -214,7 +335,7 @@ class gallery extends Controller {
         }
 
         $buffer = $admin_table->backOffice(
-            'galleryVideo', 
+            'Video', 
             array(
                 'list_display' => array('id', 'category', 'name',),
                 'list_title' => _("Elenco video"), 
@@ -233,17 +354,21 @@ class gallery extends Controller {
         return $buffer;
     }
 
+    /**
+     * @brief Interfaccia di amministrazione categorie
+     * @return interfaccia di amministrazione
+     */
     private function manageCategory() {
 
-        $admin_table = new adminTable($this, array());
+        $admin_table = new AdminTable($this, array());
 
         $buffer = $admin_table->backOffice(
-            'galleryCategory', 
+            'Category', 
             array(
                 'list_display' => array('id', 'name', 'showcase'),
                 'list_title' => _("Elenco categorie"), 
                 'list_description' => "<p>"._('Ciascuna immagine inserita dovrà essere associato ad una categoria qui definita.')."</p>" .
-                                                            "<p>"._('L\'eliminazione di una categoria NON comporta l\'eliminazione di tutte le immagini associate!')."</p>"
+                                      "<p>"._('L\'eliminazione di una categoria NON comporta l\'eliminazione di tutte le immagini associate!')."</p>"
             ),
             array(
             ),

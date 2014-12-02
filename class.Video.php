@@ -1,11 +1,34 @@
 <?php
+/**
+ * \file class.Video.php
+ * @brief Contiene la definizione ed implementazione della classe Video.
+ * 
+ * @version 0.1.0
+ * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
+ * @authors Marco Guidotti guidottim@gmail.com
+ * @authors abidibo abidibo@gmail.com
+ */
 
-class GalleryVideo extends Model {
+namespace Gino\App\Gallery;
 
-    private $_controller;
+use \Gino\ImageField;
+use \Gino\ForeignKeyField;
+use \Gino\EnumField;
+use \Gino\GImage;
+
+/**
+ * \ingroup gino-gallery
+ * Classe tipo model che rappresenta un media video.
+ *
+ * @version 0.1.0
+ * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
+ * @authors Marco Guidotti guidottim@gmail.com
+ * @authors abidibo abidibo@gmail.com
+ */
+class Video extends \Gino\Model {
 
     public static $table = 'gallery_video';
-	protected static $_extension_img = array('jpg', 'jpeg', 'png');
+    protected static $_extension_img = array('jpg', 'jpeg', 'png');
 
     /**
      * Costruttore
@@ -15,7 +38,7 @@ class GalleryVideo extends Model {
      */
     function __construct($id) {
 
-        $this->_controller = 'gallery';
+        $this->_controller = new gallery();
         $this->_tbl_data = self::$table;
 
         $this->_fields_label = array(
@@ -35,7 +58,7 @@ class GalleryVideo extends Model {
     }
 
     function __toString() {
-        return (string) $this->name;
+        return (string) $this->ml('name');
     }
 
     public function structure($id) {
@@ -47,8 +70,10 @@ class GalleryVideo extends Model {
             'model'=>$this,
             'required'=>true,
             'lenght'=>3, 
-            'foreign'=>'GalleryCategory', 
-            'foreign_order'=>'name ASC'
+            'foreign'=>'\Gino\App\Gallery\Category', 
+            'foreign_order'=>'name ASC',
+            'add_related' => true,
+            'add_related_url' => $this->_home.'?evt['.$this->_controller->getInstanceName().'-manageGallery]&block=ctg&insert=1',
         ));
 
         $structure['platform'] = new EnumField(array(
@@ -69,41 +94,30 @@ class GalleryVideo extends Model {
         return $structure;
     }
 
-    public static function get($options = null) {
-
-        $res = array();
-
-        $where = gOpt('where', $options, '');
-        $order = gOpt('order', $options, 'name');
-        $limit = gOpt('limit', $options, null);
-
-        $db = db::instance();
-        $selection = 'id';
-        $table = self::$tbl_video;
-
-        $rows = $db->select($selection, $table, $where, array('order'=>$order, 'limit'=>$limit));
-        if($rows and count($rows)) {
-            foreach($rows as $row) {
-                $res[] = new GalleryVideo($row['id']);
-            }
-        }
-
-        return $res;
-
-    }
-
+    /**
+     * @brief Path relativo della thumb
+     * @description se non vengono fornite dimensioni viene considerata la thumb originale, altrimenti la thumb viene creata al volo dalla classe @ref GImage
+     * @param int $w larghezza thumb se creata al volo
+     * @param int $h altezza thumb se creata al volo
+     * @return path
+     */
     public function thumbPath($w = null, $h = null) {
         if(!($w and $h)) {
             return CONTENT_WWW.'/gallery/thumb/'.$this->thumb;
         }
         else {
-            $image = new GImage(absolutePath(CONTENT_WWW.'/gallery/thumb/'.$this->thumb));
+            $image = new GImage(\Gino\absolutePath(CONTENT_WWW.'/gallery/thumb/'.$this->thumb));
             $thumb = $image->thumb($w, $h);
             return $thumb->getPath();
         }
 
     }
 
+    /**
+     * @brief Salva il modello su db
+     * @description Il metodo estende quello della classe @ref Model per eseguire il download della thumb direttamente da youtube o vimeo
+     * @return TRUE
+     */
     public function updateDbData() {
         parent::updateDbData();
 
@@ -132,6 +146,12 @@ class GalleryVideo extends Model {
         return true;
     }
 
+    /**
+     * @brief Salva una immagine da url esterno
+     * @param string $url url immagine
+     * @param string $saveto percorso di destinazione
+     * @return void
+     */
     private function grabImage($url, $saveto){
         $ch = curl_init ($url);
         curl_setopt($ch, CURLOPT_HEADER, 0);

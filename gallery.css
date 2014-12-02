@@ -211,6 +211,8 @@
     width: 100%;
     padding: 10px;
     font-size: 20px;
+    position: absolute;
+    bottom: 0;
 }
 #gallery-box-container a:link, #gallery-box-container a:visited {
     color: #000;
@@ -232,7 +234,7 @@
     font-size: 68px;
     padding-right: 30px;
     padding-top: 20px;
-    text-shadow: 1px 1px 1px #000;
+    text-shadow: 2px 2px 8px #000;
     text-align: right;
 }
 

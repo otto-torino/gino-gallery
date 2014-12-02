@@ -1,3 +1,7 @@
+-- Permissions --
+INSERT INTO `auth_permission` (`class`, `code`, `label`, `description`, `admin`) VALUES
+('gallery', 'can_admin', 'Amministrazione gallerie', 'Inserimento, modifica ed eliminazione di categorie, immagini e codici video', 1);
+
 --
 -- Table structure for table `gallery_category`
 --
