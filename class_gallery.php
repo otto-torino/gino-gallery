@@ -3,7 +3,7 @@
  * @file class_gallery.php
  * @brief Contiene la definizione ed implementazione della classe \ref news.
  *
- * @version 0.1.0
+ * @version 1.0.0
  * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
  * @authors Marco Guidotti guidottim@gmail.com
  * @authors abidibo abidibo@gmail.com
@@ -12,6 +12,7 @@
 namespace Gino\App\Gallery;
 
 use \Gino\View;
+use \Gino\Document;
 use \Gino\Loader;
 use \Gino\AdminTable;
 
@@ -48,7 +49,7 @@ require_once('class.Video.php');
  * - showcase position fixed su sfondo
  * - Navigazione elementi multimediali di una categoria
  * 
- * @version 0.1.0
+ * @version 1.0.0
  * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
  * @authors Marco Guidotti guidottim@gmail.com
  * @authors abidibo abidibo@gmail.com
@@ -113,17 +114,15 @@ class gallery extends \Gino\Controller {
         return $list;
     }
 
-    /*+
+    /**
      * @brief Vista lista gallerie
-     * @return lista gallerie
+     * 
+     * @param \Gino\Http\Request $request istanza di Gino.Http.Request
+     * @return Gino.Http.Response lista gallerie
      */
-    public function index() {
+    public function index(\Gino\Http\Request $request) {
 
         $this->_registry->addCss($this->_class_www."/gallery.css");
-
-        $view = new View($this->_view_dir);
-
-        $view->setViewTpl('index');
 
         $categories = Category::objects();
 
@@ -141,13 +140,16 @@ class gallery extends \Gino\Controller {
             }
         }
 
+        $view = new View($this->_view_dir);
+        $view->setViewTpl('index');
         $dict = array(
             'section_id' => 'gallery-index',
             'title' => _('Gallerie'),
             'ctgs' => $ctgs,
         );
 
-        return $view->render($dict);
+        $document = new Document($view->render($dict));
+        return $document();
     }
 
     /**
@@ -157,10 +159,6 @@ class gallery extends \Gino\Controller {
     public function box() {
 
         $this->_registry->addCss($this->_class_www."/gallery.css");
-
-        $view = new View($this->_view_dir);
-
-        $view->setViewTpl('box');
 
         $ctgs = array();
 
@@ -179,12 +177,14 @@ class gallery extends \Gino\Controller {
             }
         }
 
+        $view = new View($this->_view_dir);
+        $view->setViewTpl('box');
         $dict = array(
             'section_id' => 'gallery-box',
             'title' => _('Foto'),
             'ctgs' => $ctgs,
         );
-
+        
         return $view->render($dict);
     }
 
@@ -201,7 +201,7 @@ class gallery extends \Gino\Controller {
         $view = new View($this->_view_dir);
 
         $ctgs = Category::objects(null, array('where' => "showcase='1'", 'order' => 'name ASC'));
-        $active_ctg = count($ctgs and $ctgs) ? $ctgs[0] : null;
+        $active_ctg = count($ctgs) and $ctgs ? $ctgs[0] : null;
 
         $view->setViewTpl('showcase');
         $dict = array(
@@ -215,19 +215,17 @@ class gallery extends \Gino\Controller {
 
     /**
      * @brief Vista elementi multimediali appartenenti ad una categoria
-     * @return vista elementi multimediali categoria
+     * 
+     * @param \Gino\Http\Request $request istanza di Gino.Http.Request
+     * @return Gino.Http.Response vista elementi multimediali categoria
      */
-    public function category() {
+    public function category(\Gino\Http\Request $request) {
 
         $this->_registry->addJs($this->_class_www."/moogallery.js");
         $this->_registry->addCss($this->_class_www."/gallery.css");
         $this->_registry->addCss($this->_class_www."/moogallery.css");
 
-        $view = new View($this->_view_dir);
-
-        $id = \Gino\cleanVar($_GET, 'id', 'int', '');
-
-        $view->setViewTpl('category');
+        $id = \Gino\cleanVar($request->GET, 'id', 'int', '');
 
         $category = new Category($id);
         $images = Image::objects(null, array(
@@ -236,6 +234,9 @@ class gallery extends \Gino\Controller {
         $videos = Video::objects(null, array(
             'where' => "category='".$category->id."'"
         ));
+        
+        $view = new View($this->_view_dir);
+        $view->setViewTpl('category');
         $dict = array(
             'section_id' => 'gallery-category',
             'title' => _('Foto'),
@@ -244,54 +245,63 @@ class gallery extends \Gino\Controller {
             'category' => $category
         );
 
-        return $view->render($dict);
+        $document = new Document($view->render($dict));
+        return $document();
 
     }
 
     /**
      * @brief Interfaccia di amministrazione modulo
-     * @return interfaccia amministrazione
+     * 
+     * @param \Gino\Http\Request $request istanza di Gino.Http.Request
+     * @return Gino.Http.Response interfaccia di back office
      */
-    public function manageGallery() {
+    public function manageGallery(\Gino\Http\Request $request) {
 
         $this->requirePerm('can_admin');
 
         Loader::import('class', '\Gino\AdminTable');
 
-        $block = \Gino\cleanVar($_GET, 'block', 'string', '');
-
-        $link_frontend = "<a href=\"".$this->_home."?evt[$this->_instance_name-manageGallery]&block=frontend\">"._("Frontend")."</a>";
-        $link_ctg = "<a href=\"".$this->_home."?evt[$this->_instance_name-manageGallery]&block=ctg\">"._("Categorie")."</a>";
-        $link_video = "<a href=\"".$this->_home."?evt[$this->_instance_name-manageGallery]&block=video\">"._("Video")."</a>";
-        $link_dft = "<a href=\"".$this->_home."?evt[".$this->_instance_name."-manageGallery]\">"._("Immagini")."</a>";
+        $block = \Gino\cleanVar($request->GET, 'block', 'string', '');
+        
+        $link_frontend = sprintf('<a href="%s">%s</a>', $this->linkAdmin(array(), 'block=frontend'), _('Frontend'));
+        $link_video = sprintf('<a href="%s">%s</a>', $this->linkAdmin(array(), 'block=video'), _('Video'));
+        $link_ctg = sprintf('<a href="%s">%s</a>', $this->linkAdmin(array(), 'block=ctg'), _('Categorie'));
+        $link_dft = sprintf('<a href="%s">%s</a>', $this->linkAdmin(), _('Immagini'));
+        
         $sel_link = $link_dft;
 
         if($block == 'frontend') {
-            $buffer = $this->manageFrontend();
+            $backend = $this->manageFrontend();
             $sel_link = $link_frontend;
         }
         elseif($block == 'video') {
-            $buffer = $this->manageVideo();
+            $backend = $this->manageVideo();
             $sel_link = $link_video;
         }
         elseif($block == 'ctg') {
-            $buffer = $this->manageCategory();
+            $backend = $this->manageCategory();
             $sel_link = $link_ctg;
         }
         else {
-            $buffer = $this->manageImage();
+            $backend = $this->manageImage();
+        }
+        
+   		if(is_a($backend, '\Gino\Http\Response')) {
+            return $backend;
         }
 
+        $view = new View();
+        $view->setViewTpl('tab');
         $dict = array(
             'title' => _('Galleria immagini'),
             'links' => array($link_frontend, $link_ctg, $link_video, $link_dft),
             'selected_link' => $sel_link,
-            'content' => $buffer
+            'content' => $backend
         );
 
-        $view = new View(null, 'tab');
-        return $view->render($dict);
-
+        $document = new Document($view->render($dict));
+        return $document();
     }
 
     /**
