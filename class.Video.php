@@ -3,7 +3,7 @@
  * \file class.Video.php
  * @brief Contiene la definizione ed implementazione della classe Video.
  * 
- * @version 0.1.0
+ * @version 1.0.0
  * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
  * @authors Marco Guidotti guidottim@gmail.com
  * @authors abidibo abidibo@gmail.com
@@ -20,7 +20,7 @@ use \Gino\GImage;
  * \ingroup gino-gallery
  * Classe tipo model che rappresenta un media video.
  *
- * @version 0.1.0
+ * @version 1.0.0
  * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
  * @authors Marco Guidotti guidottim@gmail.com
  * @authors abidibo abidibo@gmail.com
@@ -73,7 +73,7 @@ class Video extends \Gino\Model {
             'foreign'=>'\Gino\App\Gallery\Category', 
             'foreign_order'=>'name ASC',
             'add_related' => true,
-            'add_related_url' => $this->_home.'?evt['.$this->_controller->getInstanceName().'-manageGallery]&block=ctg&insert=1',
+            'add_related_url' =>$this->_controller->linkAdmin(array(), "block=ctg&insert=1")
         ));
 
         $structure['platform'] = new EnumField(array(
@@ -82,13 +82,16 @@ class Video extends \Gino\Model {
             'enum'=>array(1 => 'youtube', 2 => 'vimeo')
         ));
         
+        $base_path = $this->_controller->getBaseAbsPath();
+        
         $structure['thumb'] = new ImageField(array(
             'name'=>'thumb', 
             'model'=>$this,
             'lenght'=>100, 
             'extensions'=>self::$_extension_img, 
             'resize'=>false, 
-            'path'=>CONTENT_DIR.OS.'gallery'.OS.'thumb', 
+        	'path'=>$base_path, 
+        	'add_path'=>OS.'thumb'
         ));
 
         return $structure;
@@ -102,11 +105,14 @@ class Video extends \Gino\Model {
      * @return path
      */
     public function thumbPath($w = null, $h = null) {
-        if(!($w and $h)) {
-            return CONTENT_WWW.'/gallery/thumb/'.$this->thumb;
+        
+    	$relpath = $this->_controller->getBasePath().'/thumb/'.$this->thumb;
+    	
+    	if(!($w and $h)) {
+            return $relpath;
         }
         else {
-            $image = new GImage(\Gino\absolutePath(CONTENT_WWW.'/gallery/thumb/'.$this->thumb));
+            $image = new GImage(\Gino\absolutePath($relpath));
             $thumb = $image->thumb($w, $h);
             return $thumb->getPath();
         }
@@ -122,9 +128,12 @@ class Video extends \Gino\Model {
         parent::updateDbData();
 
         if(!$this->thumb and function_exists('curl_version')) {
-            if($this->platform == 1) {
+            
+        	$path_to_file = $this->_controller->getBaseAbsPath().OS.'thumb'.OS.'thumb_video_'.$this->id.'.jpg';
+        	
+        	if($this->platform == 1) {
                 $url = "http://img.youtube.com/vi/".$this->code."/hqdefault.jpg";
-                $this->grabImage($url, CONTENT_DIR.OS.'gallery'.OS.'thumb'.OS.'thumb_video_'.$this->id.'.jpg');
+                $this->grabImage($url, $path_to_file);
                 $this->thumb = 'thumb_video_'.$this->id.'.jpg';
                 parent::updateDbData();
             }
@@ -137,7 +146,7 @@ class Video extends \Gino\Model {
                 curl_close ($ch);
                 $hash = unserialize($raw);
                 $url = $hash[0]['thumbnail_large'];
-                $this->grabImage($url, CONTENT_DIR.OS.'gallery'.OS.'thumb'.OS.'thumb_video_'.$this->id.'.jpg');
+                $this->grabImage($url, $path_to_file);
                 $this->thumb = 'thumb_video_'.$this->id.'.jpg';
                 parent::updateDbData();
             }

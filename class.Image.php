@@ -19,7 +19,7 @@ use \Gino\GImage;
  * \ingroup gino-gallery
  * Classe tipo model che rappresenta un media immagine.
  *
- * @version 0.1.0
+ * @version 1.0.0
  * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
  * @authors Marco Guidotti guidottim@gmail.com
  * @authors abidibo abidibo@gmail.com
@@ -80,17 +80,19 @@ class Image extends \Gino\Model {
             'foreign'=>'\Gino\App\Gallery\Category', 
             'foreign_order'=>'name ASC',
             'add_related' => true,
-            'add_related_url' => $this->_home.'?evt['.$this->_controller->getInstanceName().'-manageGallery]&block=ctg&insert=1',
+            'add_related_url' =>$this->_controller->linkAdmin(array(), "block=ctg&insert=1")
         ));
         
-
+		$base_path = $this->_controller->getBaseAbsPath();
+        
         $structure['file'] = new ImageField(array(
             'name'=>'file', 
             'model'=>$this,
             'lenght'=>100, 
             'extensions'=>self::$_extension_img, 
             'resize'=>false, 
-            'path'=>CONTENT_DIR.OS.'gallery'.OS.'img', 
+            'path'=>$base_path, 
+        	'add_path'=>OS.'img'
         ));
 
         $structure['thumb'] = new ImageField(array(
@@ -99,7 +101,8 @@ class Image extends \Gino\Model {
             'lenght'=>100, 
             'extensions'=>self::$_extension_img, 
             'resize'=>false, 
-            'path'=>CONTENT_DIR.OS.'gallery'.OS.'thumb', 
+            'path'=>$base_path, 
+        	'add_path'=>OS.'thumb'
         ));
 
         return $structure;
@@ -110,7 +113,8 @@ class Image extends \Gino\Model {
      * @ return path
      */
     public function path() {
-        return CONTENT_WWW.'/gallery/img/'.$this->file;
+        
+    	return $this->_controller->getBasePath().'/img/'.$this->file;
     }
 
     /**
@@ -122,14 +126,14 @@ class Image extends \Gino\Model {
      */
     public function thumbPath($w = 100, $h = 100) {
         if($this->thumb) {
-            return CONTENT_WWW.'/gallery/thumb/'.$this->thumb;
+            
+        	return $this->_controller->getBasePath().'/thumb/'.$this->thumb;
         }
         else {
-            $image = new GImage(\Gino\absolutePath($this->path()));
-            $thumb = $image->thumb($w, $h);
-            return $thumb->getPath();
+        	$image = new GImage(\Gino\absolutePath($this->path()));
+        	$thumb = $image->thumb($w, $h);
+        	return $thumb->getPath();
         }
-
     }
 
 }

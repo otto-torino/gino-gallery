@@ -113,6 +113,22 @@ class gallery extends \Gino\Controller {
 
         return $list;
     }
+    
+	/**
+     * @brief Percorso della directory di un media a partire dal percorso base
+     *
+     * @param integer $id valore ID della pagina
+     * @return percorso
+     */
+    public function getAddPath($id) {
+
+        if(!$id)
+            $id = $this->_db->autoIncValue(pageEntry::$table);
+
+        $directory = $id.OS;
+
+        return $directory;
+    }
 
     /**
      * @brief Vista lista gallerie
@@ -127,7 +143,8 @@ class gallery extends \Gino\Controller {
         $categories = Category::objects();
 
         foreach($categories as $c) {
-            $images = Image::objects(null, array('where' => "category='".$c->id."'"));
+        	
+        	$images = Image::objects(null, array('where' => "category='".$c->id."'"));
             $videos = Video::objects(null, array('where' => "category='".$c->id."'"));
             if(count($images) or count($videos)) {
                 $ctgs[] = array(
@@ -201,8 +218,8 @@ class gallery extends \Gino\Controller {
         $view = new View($this->_view_dir);
 
         $ctgs = Category::objects(null, array('where' => "showcase='1'", 'order' => 'name ASC'));
-        $active_ctg = count($ctgs) and $ctgs ? $ctgs[0] : null;
-
+        $active_ctg = $ctgs && count($ctgs) ? $ctgs[0] : null;
+        
         $view->setViewTpl('showcase');
         $dict = array(
             'section_id' => 'gallery-showcase',
