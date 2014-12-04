@@ -1,6 +1,6 @@
 <?php
 /**
-* @file index.php
+* @file category.php
 * @brief Template per la vista elementi multimediali categoria
 *
 * Variabili disponibili:
