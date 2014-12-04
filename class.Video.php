@@ -1,9 +1,8 @@
 <?php
 /**
- * \file class.Video.php
- * @brief Contiene la definizione ed implementazione della classe Video.
- * 
- * @version 1.0.0
+ * @file class.Video.php
+ * @brief Contiene la definizione ed implementazione della classe Gino.App.Gallery.Video.
+ *
  * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
  * @authors Marco Guidotti guidottim@gmail.com
  * @authors abidibo abidibo@gmail.com
@@ -17,8 +16,7 @@ use \Gino\EnumField;
 use \Gino\GImage;
 
 /**
- * \ingroup gino-gallery
- * Classe tipo model che rappresenta un media video.
+ * @brief Classe tipo Gino.Model che rappresenta un media video
  *
  * @version 1.0.0
  * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
@@ -34,7 +32,7 @@ class Video extends \Gino\Model {
      * Costruttore
      *
      * @param integer $id valore ID del record
-     * @param object $instance istanza del controller
+     * @return istanza di Gino.App.Gallery.Video
      */
     function __construct($id) {
 
@@ -57,20 +55,31 @@ class Video extends \Gino\Model {
         $this->_model_label = _('Video');
     }
 
+    /**
+     * @brief Rappresentazione a stringa dell'oggetto
+     * @return nome video
+     */
     function __toString() {
         return (string) $this->ml('name');
     }
 
+    /**
+     * @brief Sovrascrive la struttura di default
+     *
+     * @see Gino.Model::structure()
+     * @param integer $id
+     * @return array, struttura
+     */
     public function structure($id) {
 
         $structure = parent::structure($id);
-        
+
         $structure['category'] = new ForeignKeyField(array(
-            'name'=>'category', 
+            'name'=>'category',
             'model'=>$this,
             'required'=>true,
-            'lenght'=>3, 
-            'foreign'=>'\Gino\App\Gallery\Category', 
+            'lenght'=>3,
+            'foreign'=>'\Gino\App\Gallery\Category',
             'foreign_order'=>'name ASC',
             'add_related' => true,
             'add_related_url' =>$this->_controller->linkAdmin(array(), "block=ctg&insert=1")
@@ -81,17 +90,16 @@ class Video extends \Gino\Model {
             'model'=>$this,
             'enum'=>array(1 => 'youtube', 2 => 'vimeo')
         ));
-        
+
         $base_path = $this->_controller->getBaseAbsPath();
-        
         $structure['thumb'] = new ImageField(array(
-            'name'=>'thumb', 
+            'name'=>'thumb',
             'model'=>$this,
-            'lenght'=>100, 
-            'extensions'=>self::$_extension_img, 
-            'resize'=>false, 
-        	'path'=>$base_path, 
-        	'add_path'=>OS.'thumb'
+            'lenght'=>100,
+            'extensions'=>self::$_extension_img,
+            'resize'=>false,
+            'path'=>$base_path,
+            'add_path'=>OS.'thumb'
         ));
 
         return $structure;
@@ -105,10 +113,10 @@ class Video extends \Gino\Model {
      * @return path
      */
     public function thumbPath($w = null, $h = null) {
-        
-    	$relpath = $this->_controller->getBasePath().'/thumb/'.$this->thumb;
-    	
-    	if(!($w and $h)) {
+
+        $relpath = $this->_controller->getBasePath().'/thumb/'.$this->thumb;
+
+        if(!($w and $h)) {
             return $relpath;
         }
         else {
@@ -121,38 +129,40 @@ class Video extends \Gino\Model {
 
     /**
      * @brief Salva il modello su db
-     * @description Il metodo estende quello della classe @ref Model per eseguire il download della thumb direttamente da youtube o vimeo
+     * @see Gino.Model::save()
+     * @description Il metodo estende quello della classe @ref Gino.Model per eseguire il download della thumb direttamente da youtube o vimeo
      * @return TRUE
      */
-    public function updateDbData() {
-        parent::updateDbData();
+    public function save() {
+
+        parent::save();
 
         if(!$this->thumb and function_exists('curl_version')) {
-            
-        	$path_to_file = $this->_controller->getBaseAbsPath().OS.'thumb'.OS.'thumb_video_'.$this->id.'.jpg';
-        	
-        	if($this->platform == 1) {
+
+            $path_to_file = $this->_controller->getBaseAbsPath().OS.'thumb'.OS.'thumb_video_'.$this->id.'.jpg';
+
+            if($this->platform == 1) {
                 $url = "http://img.youtube.com/vi/".$this->code."/hqdefault.jpg";
                 $this->grabImage($url, $path_to_file);
                 $this->thumb = 'thumb_video_'.$this->id.'.jpg';
-                parent::updateDbData();
+                parent::save();
             }
             else {
                 $info_url = "http://vimeo.com/api/v2/video/".$this->code.".php";
                 $ch = curl_init ($info_url);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_HEADER, false);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+                curl_setopt($ch, CURLOPT_HEADER, FALSE);
                 $raw = curl_exec($ch);
                 curl_close ($ch);
                 $hash = unserialize($raw);
                 $url = $hash[0]['thumbnail_large'];
                 $this->grabImage($url, $path_to_file);
                 $this->thumb = 'thumb_video_'.$this->id.'.jpg';
-                parent::updateDbData();
+                parent::save();
             }
         }
 
-        return true;
+        return TRUE;
     }
 
     /**

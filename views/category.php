@@ -1,20 +1,19 @@
 <?php
 /**
-* @file view/index.php
-* @ingroup gino-gallery
+* @file index.php
 * @brief Template per la vista elementi multimediali categoria
 *
 * Variabili disponibili:
-* - **section_id**: attributo id section
-* - **title**: titolo
-* - **images**: array di immagini @reg \Gino\App\Gallery\Image
-* - **videos**: array di video @reg \Gino\App\Gallery\Video
-* - **ctg**: oggetto categoria @ref \Gino\App\Gallery\Category
+* - **section_id**: string, attributo id section
+* - **title**: string, titolo
+* - **images**: array, array di immagini Gino.App.Gallery.Image
+* - **videos**: array, array di video Gino.App.Gallery.Video
+* - **ctg**: \Gino\App\Gallery\Category oggetto categoria Gino.App.Gallery.Category
 *
 * @version 1.0.0
 * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
-* @authors Marco Guidotti guidottim@gmail.com
-* @authors abidibo abidibo@gmail.com
+* @author Marco Guidotti guidottim@gmail.com
+* @author abidibo abidibo@gmail.com
 */
 ?>
 <? namespace Gino\App\Gallery; ?>
@@ -28,24 +27,24 @@
     var mg_instance = new moogallery('gallery-container', [
     <? foreach($videos as $video): ?>
         {
-            thumb: '<?= $video->thumbPath(100, 100) ?>', 
+            thumb: '<?= $video->thumbPath(100, 100) ?>',
         <? if($video->platform == 1): ?>
-            youtube: '<?= $video->code ?>', 
+            youtube: '<?= $video->code ?>',
         <? else: ?>
-            vimeo: '<?= $video->code ?>', 
+            vimeo: '<?= $video->code ?>',
         <? endif ?>
             video_width: '<?= $video->width ?>',
             video_height: '<?= $video->height ?>',
-            title: '<?= \Gino\jsVar($video->ml('name')) ?>', 
+            title: '<?= \Gino\jsVar($video->ml('name')) ?>',
             description: '<?= \Gino\jsVar($video->ml('description')) ?>',
             credits: ''
         },
     <? endforeach ?>
     <? foreach($images as $image): ?>
         {
-            thumb: '<?= $image->thumbPath() ?>', 
-            img: '<?= $image->path() ?>', 
-            title: '<?= \Gino\jsVar($image->ml('name')) ?>', 
+            thumb: '<?= $image->thumbPath() ?>',
+            img: '<?= $image->path() ?>',
+            title: '<?= \Gino\jsVar($image->ml('name')) ?>',
             description: '<?= \Gino\jsVar($image->ml('description')) ?>',
             credits: ''
         },

@@ -1,9 +1,8 @@
 <?php
 /**
- * \file class.Image.php
- * @brief Contiene la definizione ed implementazione della classe Image.
- * 
- * @version 0.1.0
+ * @file class.Image.php
+ * @brief Contiene la definizione ed implementazione della classe Gino.App.Gallery.Image
+ *
  * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
  * @authors Marco Guidotti guidottim@gmail.com
  * @authors abidibo abidibo@gmail.com
@@ -16,8 +15,7 @@ use \Gino\ForeignKeyField;
 use \Gino\GImage;
 
 /**
- * \ingroup gino-gallery
- * Classe tipo model che rappresenta un media immagine.
+ * @brief Classe di tipo Gino.Model che rappresenta un media immagine
  *
  * @version 1.0.0
  * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
@@ -33,7 +31,7 @@ class Image extends \Gino\Model {
      * Costruttore
      *
      * @param integer $id valore ID del record
-     * @param object $instance istanza del controller
+     * @return istanza di Gino.App.Gallery.Image
      */
     function __construct($id) {
 
@@ -63,46 +61,47 @@ class Image extends \Gino\Model {
 
     /**
      * @brief Sovrascrive la struttura di default
-     * 
-     * @see propertyObject::structure()
+     *
+     * @see Gino.Model::structure()
      * @param integer $id
-     * @return array
+     * @return array, struttura
      */
     public function structure($id) {
 
         $structure = parent::structure($id);
-        
+
         $structure['category'] = new ForeignKeyField(array(
-            'name'=>'category', 
+            'name'=>'category',
+            'required'=>TRUE,
             'model'=>$this,
             'required'=>true,
-            'lenght'=>3, 
-            'foreign'=>'\Gino\App\Gallery\Category', 
+            'lenght'=>3,
+            'foreign'=>'\Gino\App\Gallery\Category',
             'foreign_order'=>'name ASC',
             'add_related' => true,
             'add_related_url' =>$this->_controller->linkAdmin(array(), "block=ctg&insert=1")
         ));
-        
-		$base_path = $this->_controller->getBaseAbsPath();
-        
+
+        $base_path = $this->_controller->getBaseAbsPath();
+
         $structure['file'] = new ImageField(array(
-            'name'=>'file', 
+            'name'=>'file',
             'model'=>$this,
-            'lenght'=>100, 
-            'extensions'=>self::$_extension_img, 
-            'resize'=>false, 
-            'path'=>$base_path, 
-        	'add_path'=>OS.'img'
+            'lenght'=>100,
+            'extensions'=>self::$_extension_img,
+            'resize'=>false,
+            'path'=>$base_path,
+            'add_path'=>OS.'img'
         ));
 
         $structure['thumb'] = new ImageField(array(
-            'name'=>'thumb', 
+            'name'=>'thumb',
             'model'=>$this,
-            'lenght'=>100, 
-            'extensions'=>self::$_extension_img, 
-            'resize'=>false, 
-            'path'=>$base_path, 
-        	'add_path'=>OS.'thumb'
+            'lenght'=>100,
+            'extensions'=>self::$_extension_img,
+            'resize'=>false,
+            'path'=>$base_path,
+            'add_path'=>OS.'thumb'
         ));
 
         return $structure;
@@ -113,8 +112,8 @@ class Image extends \Gino\Model {
      * @ return path
      */
     public function path() {
-        
-    	return $this->_controller->getBasePath().'/img/'.$this->file;
+
+        return $this->_controller->getBasePath().'/img/'.$this->file;
     }
 
     /**
@@ -126,13 +125,13 @@ class Image extends \Gino\Model {
      */
     public function thumbPath($w = 100, $h = 100) {
         if($this->thumb) {
-            
-        	return $this->_controller->getBasePath().'/thumb/'.$this->thumb;
+
+            return $this->_controller->getBasePath().'/thumb/'.$this->thumb;
         }
         else {
-        	$image = new GImage(\Gino\absolutePath($this->path()));
-        	$thumb = $image->thumb($w, $h);
-        	return $thumb->getPath();
+            $image = new GImage(\Gino\absolutePath($this->path()));
+            $thumb = $image->thumb($w, $h);
+            return $thumb->getPath();
         }
     }
 

@@ -1,18 +1,17 @@
 <?php
 /**
-* @file view/showcase.php
-* @ingroup gino-gallery
+* @file showcase.php
 * @brief Template per la vista showcase fisso sullo sfondo
 *
 * Variabili disponibili:
-* - **section_id**: attributo id section
-* - **ctgs**: array di categorie @ref \Gino\App\Gallery\Category
-* - **active_ctg**: categoria @ref \Gino\App\Gallery\Category attiva
+* - **section_id**: string, attributo id section
+* - **ctgs**: array, array di categorie Gino.App.Gallery.Category
+* - **active_ctg**: \Gino\App\Gallery\Category categoria Gino.App.Gallery.Category attiva
 *
 * @version 1.0.0
 * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
-* @authors Marco Guidotti guidottim@gmail.com
-* @authors abidibo abidibo@gmail.com
+* @author Marco Guidotti guidottim@gmail.com
+* @author abidibo abidibo@gmail.com
 */
 ?>
 <? namespace Gino\App\Gallery; ?>

@@ -1,14 +1,17 @@
 <?php
 /**
  * @file class_gallery.php
- * @brief Contiene la definizione ed implementazione della classe \ref news.
+ * @brief Contiene la definizione ed implementazione della classe Gino.App.Gallery.gallery
  *
- * @version 1.0.0
  * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
- * @authors Marco Guidotti guidottim@gmail.com
- * @authors abidibo abidibo@gmail.com
+ * @author Marco Guidotti guidottim@gmail.com
+ * @author abidibo abidibo@gmail.com
  */
 
+/**
+ * @namespace Gino.App.Gallery
+ * @description Namespace dell'applicazione Gallery
+ */
 namespace Gino\App\Gallery;
 
 use \Gino\View;
@@ -16,49 +19,30 @@ use \Gino\Document;
 use \Gino\Loader;
 use \Gino\AdminTable;
 
-/** \mainpage Caratteristiche e output disponibili per i template e le voci di menu
- *
- * CARATTERISTICHE
- *
- * Modulo di gestione gallerie di immagini e video
- *
- * OUTPUTS
- * - box di presentazione per home page
- * - showcase position fixed su sfondo
- * - Navigazione elementi multimediali di una categoria
- */
 require_once('class.Image.php');
 require_once('class.Category.php');
 require_once('class.Video.php');
 
 /**
- * @defgroup gino-gallery
- * Modulo di gestione gallerie multimediali
- *
- * Il modulo contiene anche dei css, javascript e file di configurazione.
- *
- */
-
-/**
- * \ingroup gino-gallery
- * Classe per la gestione gallerie di elementi multimediali, immagini e video.
+ * @brief Classe di tipo Gino.Controller per la gestione gallerie di elementi multimediali, immagini e video
  *
  * Gli output disponibili sono:
  *
  * - box di presentazione per home page
  * - showcase position fixed su sfondo
+ * - lista gallerie
  * - Navigazione elementi multimediali di una categoria
- * 
+ *
  * @version 1.0.0
  * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
- * @authors Marco Guidotti guidottim@gmail.com
- * @authors abidibo abidibo@gmail.com
+ * @author Marco Guidotti guidottim@gmail.com
+ * @author abidibo abidibo@gmail.com
  */
 class gallery extends \Gino\Controller {
 
     /**
      * @brief Costruttore
-     * @return nuova istanza
+     * @return istanza di Gino.App.Gallery.gallery
      */
     function __construct() {
         parent::__construct();
@@ -66,15 +50,15 @@ class gallery extends \Gino\Controller {
 
     /**
      * @brief Restituisce alcune proprietà della classe utili per la generazione di nuove istanze
-     * @return lista delle proprietà utilizzate per la creazione di istanze di tipo news
+     * @return lista delle proprietà utilizzate per la creazione di istanze di tipo events (tabelle, css, viste, folders)
      */
     public static function getClassElements() {
 
         return array(
             "tables"=>array(
-                'gallery_category', 
-                'gallery_image', 
-                'gallery_video', 
+                'gallery_category',
+                'gallery_image',
+                'gallery_video',
             ),
             "css"=>array(
                 'gallery.css'
@@ -95,13 +79,8 @@ class gallery extends \Gino\Controller {
     }
 
     /**
-     * @brief Definizione dei metodi pubblici che forniscono un output per il front-end 
-     * 
-     * Questo metodo viene letto dal motore di generazione dei layout e dal motore di generazione di voci di menu
-     * per presentare una lista di output associati all'istanza di classe. 
-     * 
-     * @access public
-     * @return array[string]array
+     * @brief Metodi pubblici disponibili per inserimento in layout (non presenti nel file events.ini) e menu (presenti nel file events.ini)
+     * @return lista metodi NOME_METODO => array('label' => LABEL, 'permissions' = PERMISSIONS)
      */
     public static function outputFunctions() {
 
@@ -113,26 +92,10 @@ class gallery extends \Gino\Controller {
 
         return $list;
     }
-    
-	/**
-     * @brief Percorso della directory di un media a partire dal percorso base
-     *
-     * @param integer $id valore ID della pagina
-     * @return percorso
-     */
-    public function getAddPath($id) {
-
-        if(!$id)
-            $id = $this->_db->autoIncValue(pageEntry::$table);
-
-        $directory = $id.OS;
-
-        return $directory;
-    }
 
     /**
      * @brief Vista lista gallerie
-     * 
+     *
      * @param \Gino\Http\Request $request istanza di Gino.Http.Request
      * @return Gino.Http.Response lista gallerie
      */
@@ -143,8 +106,7 @@ class gallery extends \Gino\Controller {
         $categories = Category::objects();
 
         foreach($categories as $c) {
-        	
-        	$images = Image::objects(null, array('where' => "category='".$c->id."'"));
+            $images = Image::objects(null, array('where' => "category='".$c->id."'"));
             $videos = Video::objects(null, array('where' => "category='".$c->id."'"));
             if(count($images) or count($videos)) {
                 $ctgs[] = array(
@@ -171,7 +133,7 @@ class gallery extends \Gino\Controller {
 
     /**
      * @brief Vista box di presentazione home page
-     * @return box di presentazione
+     * @return html, box di presentazione
      */
     public function box() {
 
@@ -201,14 +163,14 @@ class gallery extends \Gino\Controller {
             'title' => _('Foto'),
             'ctgs' => $ctgs,
         );
-        
+
         return $view->render($dict);
     }
 
     /**
      * @brief Vista vetrina galleria
      * @description Lo showcase viene renderizzato in position fixed sullo sfondo
-     * @return showcase
+     * @return html, showcase
      */
     public function showcase() {
 
@@ -219,7 +181,7 @@ class gallery extends \Gino\Controller {
 
         $ctgs = Category::objects(null, array('where' => "showcase='1'", 'order' => 'name ASC'));
         $active_ctg = $ctgs && count($ctgs) ? $ctgs[0] : null;
-        
+
         $view->setViewTpl('showcase');
         $dict = array(
             'section_id' => 'gallery-showcase',
@@ -251,7 +213,7 @@ class gallery extends \Gino\Controller {
         $videos = Video::objects(null, array(
             'where' => "category='".$category->id."'"
         ));
-        
+
         $view = new View($this->_view_dir);
         $view->setViewTpl('category');
         $dict = array(
@@ -280,12 +242,11 @@ class gallery extends \Gino\Controller {
         Loader::import('class', '\Gino\AdminTable');
 
         $block = \Gino\cleanVar($request->GET, 'block', 'string', '');
-        
+
         $link_frontend = sprintf('<a href="%s">%s</a>', $this->linkAdmin(array(), 'block=frontend'), _('Frontend'));
         $link_video = sprintf('<a href="%s">%s</a>', $this->linkAdmin(array(), 'block=video'), _('Video'));
         $link_ctg = sprintf('<a href="%s">%s</a>', $this->linkAdmin(array(), 'block=ctg'), _('Categorie'));
         $link_dft = sprintf('<a href="%s">%s</a>', $this->linkAdmin(), _('Immagini'));
-        
         $sel_link = $link_dft;
 
         if($block == 'frontend') {
@@ -303,13 +264,12 @@ class gallery extends \Gino\Controller {
         else {
             $backend = $this->manageImage();
         }
-        
-   		if(is_a($backend, '\Gino\Http\Response')) {
+
+        if(is_a($backend, '\Gino\Http\Response')) {
             return $backend;
         }
 
-        $view = new View();
-        $view->setViewTpl('tab');
+        $view = new View(null, 'tab');
         $dict = array(
             'title' => _('Galleria immagini'),
             'links' => array($link_frontend, $link_ctg, $link_video, $link_dft),
@@ -323,13 +283,13 @@ class gallery extends \Gino\Controller {
 
     /**
      * @brief Interfaccia di amministrazione immagini
-     * @return interfaccia di amministrazione
+     * @return Gino.Http.Redirect oppure html, interfaccia di amministrazione
      */
     private function manageImage() {
 
         $admin_table = new AdminTable($this, array());
 
-        $buffer = $admin_table->backOffice(
+        $backend = $admin_table->backOffice(
             'Image',
             array(
                 'list_display' => array('id', 'category', 'name',),
@@ -341,12 +301,12 @@ class gallery extends \Gino\Controller {
             array()
         );
 
-        return $buffer;
+        return $backend;
     }
 
     /**
      * @brief Interfaccia di amministrazione video
-     * @return interfaccia di amministrazione
+     * @return Gino.Http.Redirect oppure html, interfaccia di amministrazione
      */
     private function manageVideo() {
 
@@ -361,8 +321,8 @@ class gallery extends \Gino\Controller {
             $thumb_required = true;
         }
 
-        $buffer = $admin_table->backOffice(
-            'Video', 
+        $backend = $admin_table->backOffice(
+            'Video',
             array(
                 'list_display' => array('id', 'category', 'name',),
                 'list_title' => _("Elenco video"), 
@@ -378,19 +338,19 @@ class gallery extends \Gino\Controller {
             )
         );
 
-        return $buffer;
+        return $backend;
     }
 
     /**
      * @brief Interfaccia di amministrazione categorie
-     * @return interfaccia di amministrazione
+     * @return Gino.Http.Redirect oppure html, interfaccia di amministrazione
      */
     private function manageCategory() {
 
         $admin_table = new AdminTable($this, array());
 
         $buffer = $admin_table->backOffice(
-            'Category', 
+            'Category',
             array(
                 'list_display' => array('id', 'name', 'showcase'),
                 'list_title' => _("Elenco categorie"), 
