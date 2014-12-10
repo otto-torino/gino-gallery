@@ -31,7 +31,7 @@
         ctg.images = images;
         ctgs.push(ctg);
     <? endforeach ?>
-    var showcase = new gallery.Showcase(ctgs, {
+    var showcase = new gino_gallery.Showcase(ctgs, {
         dom_content: 'main-container'
     });
 </script>

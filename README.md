@@ -5,11 +5,15 @@ Modulo galleria per Gino CMS. Permette la gestione di video ed immagini organizz
 
 ## CARATTERISTICHE
 
+- gallerie di immagini e/o video (vimeo e youtube)
 - thumb video scaricate automaticamente da youtube/vimeo abilitando le curl
 - showcase fisso su sfondo
 
-## OUTPUT
+## OUTPUTS PER INSERIMENTO IN LAYOUT
 
 - Boxino presentazione in home
 - Showcase fisso su sfondo
+
+## OUTPUTS
 - Navigazione elementi multimediali di una categoria
+- Indice categorie

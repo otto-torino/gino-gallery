@@ -1,6 +1,6 @@
-var gallery = gallery || {};
+var gino_gallery = gino_gallery || {};
 
-gallery.Showcase = new Class({
+gino_gallery.Showcase = new Class({
     Implements: [Options, Events],
     options: {
         dom_content: null,
