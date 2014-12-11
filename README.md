@@ -17,3 +17,13 @@ Modulo galleria per Gino CMS. Permette la gestione di video ed immagini organizz
 ## OUTPUTS
 - Navigazione elementi multimediali di una categoria
 - Indice categorie
+
+## INSTALLAZIONE
+
+- creare un pacchetto zip di nome "gallery_pkg.zip" con tutti i file e le cartelle eccetto README.md, Doxyfile e la directory doc
+- loggarsi nell'area amministrativa e entrare nella sezione "moduli di sistema"
+- seguire il link (+) "installa nuovo modulo" e caricare il pacchetto creato al punto 1
+
+## RELEASES
+
+- 2014/12/11 | v 1.0.0 | Richiede gino 2.0.0
