@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node2" href="$class_gino_1_1_app_1_1_gallery_1_1_category.html" title="Classe tipo Gino.Model che rappresenta una categoria di media. " alt="" coords="112,5,187,32"/>
+<area shape="rect" id="node3" href="$class_gino_1_1_app_1_1_gallery_1_1_image.html" title="Classe di tipo Gino.Model che rappresenta un media immagine. " alt="" coords="120,56,179,83"/>
+<area shape="rect" id="node4" href="$class_gino_1_1_app_1_1_gallery_1_1_video.html" title="Classe tipo Gino.Model che rappresenta un media video. " alt="" coords="122,107,177,133"/>
+</map>

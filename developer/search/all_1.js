@@ -1,0 +1,5 @@
+var searchData=
+[
+  ['_5f_5fconstruct',['__construct',['../class_gino_1_1_app_1_1_gallery_1_1_category.html#a1340871f436b81e1f225567b6cce4e79',1,'Gino\App\Gallery\Category\__construct()'],['../class_gino_1_1_app_1_1_gallery_1_1_image.html#a1340871f436b81e1f225567b6cce4e79',1,'Gino\App\Gallery\Image\__construct()'],['../class_gino_1_1_app_1_1_gallery_1_1_video.html#a1340871f436b81e1f225567b6cce4e79',1,'Gino\App\Gallery\Video\__construct()'],['../class_gino_1_1_app_1_1_gallery_1_1gallery.html#a095c5d389db211932136b53f25f39685',1,'Gino\App\Gallery\gallery\__construct()']]],
+  ['_5f_5ftostring',['__toString',['../class_gino_1_1_app_1_1_gallery_1_1_category.html#a7516ca30af0db3cdbf9a7739b48ce91d',1,'Gino\App\Gallery\Category\__toString()'],['../class_gino_1_1_app_1_1_gallery_1_1_image.html#a7516ca30af0db3cdbf9a7739b48ce91d',1,'Gino\App\Gallery\Image\__toString()'],['../class_gino_1_1_app_1_1_gallery_1_1_video.html#a7516ca30af0db3cdbf9a7739b48ce91d',1,'Gino\App\Gallery\Video\__toString()']]]
+];
