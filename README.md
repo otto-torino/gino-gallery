@@ -15,6 +15,7 @@ Modulo galleria per Gino CMS. Permette la gestione di video ed immagini organizz
 - Showcase fisso su sfondo
 
 ## OUTPUTS
+
 - Navigazione elementi multimediali di una categoria
 - Indice categorie
 
