@@ -8,8 +8,8 @@
 * - **ctgs**: array, array di categorie Gino.App.Gallery.Category
 * - **active_ctg**: \Gino\App\Gallery\Category categoria Gino.App.Gallery.Category attiva
 *
-* @version 1.0.0
-* @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
+* @version 1.2.0
+* @copyright 2014-2016 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
 * @author Marco Guidotti guidottim@gmail.com
 * @author abidibo abidibo@gmail.com
 */
@@ -18,21 +18,25 @@
 <? //@cond no-doxygen ?>
 <? if($active_ctg): ?>
 <script>
-    var ctgs = [];
+	var ctgs = [];
     <? foreach($ctgs as $ctg): ?>
-        var ctg = {name: '<?= \Gino\jsVar($ctg->ml('name')) ?>'};
-        var images = [];
-        <? foreach($ctg->getImages() as $image): ?>
-            images.push({
-                path: '<?= $image->path() ?>',
-                caption: '<?= \Gino\jsVar($image->ml('name')) ?>'
-            });
-        <? endforeach ?>
-        ctg.images = images;
-        ctgs.push(ctg);
+       	var ctg = {name: '<?= \Gino\jsVar($ctg->ml('name')) ?>'};
+       	var images = [];
+       	<? foreach($ctg->getImages() as $image): ?>
+           	images.push({
+               	path: '<?= $image->path() ?>',
+               	caption: '<?= \Gino\jsVar($image->ml('name')) ?>'
+       		});
+       	<? endforeach ?>
+       	ctg.images = images;
+       	ctgs.push(ctg);
     <? endforeach ?>
-    var showcase = new gino_gallery.Showcase(ctgs, {
-        dom_content: 'main-container'
+
+    var showcase = new gallery.Showcase(ctgs, {
+       	dom_content: 'main-container',
+       	screen_min_width: null,
+       	screen_margin_min: null,
+        screen_margin_max: null,
     });
 </script>
 <? endif ?>

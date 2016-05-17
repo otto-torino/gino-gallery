@@ -3,7 +3,7 @@
  * @file class.Category.php
  * @brief Contiene la definizione ed implementazione della classe Gino.App.Gallery.Category
  *
- * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
+ * @copyright 2014-2016 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
  * @authors Marco Guidotti guidottim@gmail.com
  * @authors abidibo abidibo@gmail.com
  */
@@ -13,16 +13,18 @@ namespace Gino\App\Gallery;
 use \Gino\BooleanField;
 
 /**
+ * \ingroup gallery
  * @brief Classe tipo Gino.Model che rappresenta una categoria di media
  *
- * @version 1.0.0
- * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
+ * @version 1.2.0
+ * @copyright 2014-2016 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
  * @authors Marco Guidotti guidottim@gmail.com
  * @authors abidibo abidibo@gmail.com
  */
 class Category extends \Gino\Model {
 
     public static $table = 'gallery_category';
+    public static $columns;
 
     /**
      * Costruttore
@@ -34,15 +36,10 @@ class Category extends \Gino\Model {
 
         $this->_controller = new gallery();
         $this->_tbl_data = self::$table;
-
-        $this->_fields_label = array(
-            'name'=>_("Nome"),
-            'showcase'=>_("Disponibile per vista showcase"),
-        );
-
+        
         parent::__construct($id);
-
-        $this->_model_label = _('Categoria');
+        
+        $this->_model_label = _('Galleria');
     }
 
     /**
@@ -52,25 +49,38 @@ class Category extends \Gino\Model {
     function __toString() {
         return (string) $this->ml('name');
     }
-
+    
     /**
-     * @brief Sovrascrive la struttura di default
+     * Struttura dei campi della tabella di un modello
      *
-     * @see Gino.Model::structure()
-     * @param integer $id
-     * @return array, struttura
+     * @return array
      */
-    public function structure($id) {
-
-        $structure = parent::structure($id);
-
-        $structure['showcase'] = new BooleanField(array(
-            'name'=>'showcase',
-            'model'=>$this,
-            'enum'=>array(1 => _('si'), 0 => _('no')), 
-        ));
-
-        return $structure;
+    public static function columns() {
+    
+    	$columns['id'] = new \Gino\IntegerField(array(
+    		'name' => 'id',
+    		'primary_key' => true,
+    		'auto_increment' => true,
+    		'max_lenght' => 11,
+    	));
+    	$columns['name'] = new \Gino\CharField(array(
+    		'name' => 'name',
+    		'label' => _("Nome"),
+    		'required' => true,
+    		'max_lenght' => 255,
+    	));
+    	$columns['showcase'] = new \Gino\BooleanField(array(
+    		'name' => 'showcase',
+    		'label' => _('Disponibile per vista showcase'),
+    		'required' => true,
+    	));
+    	$columns['slideshow'] = new \Gino\BooleanField(array(
+    		'name' => 'slideshow',
+    		'label' => _('Disponibile per vista slideshow'),
+    		'required' => true,
+    	));
+    	
+    	return $columns;
     }
 
     /**
@@ -90,3 +100,4 @@ class Category extends \Gino\Model {
     }
 
 }
+Category::$columns=Category::columns();

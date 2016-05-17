@@ -3,7 +3,7 @@
  * @file class.Image.php
  * @brief Contiene la definizione ed implementazione della classe Gino.App.Gallery.Image
  *
- * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
+ * @copyright 2014-2016 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
  * @authors Marco Guidotti guidottim@gmail.com
  * @authors abidibo abidibo@gmail.com
  */
@@ -15,16 +15,19 @@ use \Gino\ForeignKeyField;
 use \Gino\GImage;
 
 /**
+ * \ingroup gallery
  * @brief Classe di tipo Gino.Model che rappresenta un media immagine
  *
- * @version 1.0.0
- * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
+ * @version 1.2.0
+ * @copyright 2014-2016 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
  * @authors Marco Guidotti guidottim@gmail.com
  * @authors abidibo abidibo@gmail.com
  */
 class Image extends \Gino\Model {
 
     public static $table = 'gallery_image';
+    public static $columns;
+    
     protected static $_extension_img = array('jpg', 'jpeg', 'png');
 
     /**
@@ -38,14 +41,6 @@ class Image extends \Gino\Model {
         $this->_controller = new gallery();
         $this->_tbl_data = self::$table;
 
-        $this->_fields_label = array(
-            'category'=>_("Categoria"),
-            'name'=>_("Nome"),
-            'description'=>_("Descrizione"),
-            'file'=>_("File"),
-            'thumb'=>_("Thumbnail"),
-        );
-
         parent::__construct($id);
 
         $this->_model_label = _('Immagine');
@@ -58,53 +53,84 @@ class Image extends \Gino\Model {
     function __toString() {
         return (string) $this->ml('name');
     }
+    
+    /**
+     * @see Gino.Model::properties()
+     */
+    protected static function properties($model, $controller) {
+    	 
+    	$base_path = $controller->getBaseAbsPath();
+    
+    	$property['category'] = array(
+    		'add_related_url' => $controller->linkAdmin(array(), "block=ctg&insert=1"),
+    	);
+    	$property['file'] = array(
+    		'path' => $base_path,
+    		'add_path' => OS.'img'
+    	);
+    	$property['thumb'] = array(
+    		'path' => $base_path,
+    		'add_path' => OS.'thumb'
+    	);
+    	 
+    	return $property;
+    }
 
     /**
-     * @brief Sovrascrive la struttura di default
+     * Struttura dei campi della tabella di un modello
      *
-     * @see Gino.Model::structure()
-     * @param integer $id
-     * @return array, struttura
+     * @return array
      */
-    public function structure($id) {
+    public static function columns() {
 
-        $structure = parent::structure($id);
-
-        $structure['category'] = new ForeignKeyField(array(
-            'name'=>'category',
-            'required'=>TRUE,
-            'model'=>$this,
-            'required'=>true,
-            'lenght'=>3,
-            'foreign'=>'\Gino\App\Gallery\Category',
-            'foreign_order'=>'name ASC',
+        $columns['id'] = new \Gino\IntegerField(array(
+    		'name' => 'id',
+    		'primary_key' => true,
+    		'auto_increment' => true,
+    		'max_lenght' => 11,
+    	));
+        $columns['category'] = new ForeignKeyField(array(
+            'name' => 'category',
+            'label' => _("Nome galleria"),
+            'required' => true,
+            'max_lenght' => 11,
+            'foreign' => '\Gino\App\Gallery\Category',
+            'foreign_order' => 'name ASC',
             'add_related' => true,
-            'add_related_url' =>$this->_controller->linkAdmin(array(), "block=ctg&insert=1")
+            'add_related_url' => null
+        ));
+        $columns['name'] = new \Gino\CharField(array(
+        	'name' => 'name',
+        	'label' => _("Etichetta del file"),
+        	'required' => true,
+        	'max_lenght' => 255,
+        ));
+        $columns['description'] = new \Gino\TextField(array(
+        	'name' => 'description',
+        	'label' => _("Descrizione"),
+        	'required' => false
+        ));
+		$columns['file'] = new ImageField(array(
+            'name' => 'file',
+        	'label' => _("File"),
+        	'required'=>true,
+            'max_lenght' => 255,
+            'extensions' => self::$_extension_img,
+            'resize' => false,
+            'path' => null,
+            'add_path' => null
+        ));
+		$columns['thumb'] = new ImageField(array(
+            'name' => 'thumb',
+        	'label' => _("Thumbnail"),
+            'max_lenght' => 255,
+            'extensions' => self::$_extension_img,
+            'resize' => false,
+            'path' => null,
+            'add_path' => null
         ));
 
-        $base_path = $this->_controller->getBaseAbsPath();
-
-        $structure['file'] = new ImageField(array(
-            'name'=>'file',
-            'model'=>$this,
-            'lenght'=>100,
-            'extensions'=>self::$_extension_img,
-            'resize'=>false,
-            'path'=>$base_path,
-            'add_path'=>OS.'img'
-        ));
-
-        $structure['thumb'] = new ImageField(array(
-            'name'=>'thumb',
-            'model'=>$this,
-            'lenght'=>100,
-            'extensions'=>self::$_extension_img,
-            'resize'=>false,
-            'path'=>$base_path,
-            'add_path'=>OS.'thumb'
-        ));
-
-        return $structure;
+        return $columns;
     }
 
     /**
@@ -135,4 +161,15 @@ class Image extends \Gino\Model {
         }
     }
 
+    /**
+     * Dimensioni immagine
+     * @return array ('width' => WIDTH, 'height' => HEIGHT)
+     */
+    public function getSize()
+    {
+        list($width, $height, $type, $attr) = getimagesize(\Gino\absolutePath($this->path()));
+        return array('width' => $width, 'height' => $height);
+    }
+
 }
+Image::$columns=Image::columns();

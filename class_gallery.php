@@ -3,7 +3,7 @@
  * @file class_gallery.php
  * @brief Contiene la definizione ed implementazione della classe Gino.App.Gallery.gallery
  *
- * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
+ * @copyright 2014-2016 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
  * @author Marco Guidotti guidottim@gmail.com
  * @author abidibo abidibo@gmail.com
  */
@@ -24,19 +24,41 @@ require_once('class.Category.php');
 require_once('class.Video.php');
 
 /**
+ * \ingroup gallery
  * @brief Classe di tipo Gino.Controller per la gestione gallerie di elementi multimediali, immagini e video
  *
- * Gli output disponibili sono:
- *
- * - box di presentazione per home page
- * - showcase position fixed su sfondo
- * - lista gallerie
- * - Navigazione elementi multimediali di una categoria
- *
- * @version 1.0.0
- * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
+ * @version 1.2.0
+ * @copyright 2014-2016 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
  * @author Marco Guidotti guidottim@gmail.com
  * @author abidibo abidibo@gmail.com
+ * 
+ * ##OUTPUTS
+ * - @a box: box di presentazione per home page (view)
+ * - @a showcase: showcase position fixed su sfondo (view)
+ * - @a index: lista gallerie (page)
+ * - @a slideshow: slideshow (view)
+ * - @a slideshowNavbar: slideshow con controlli di navigazione (view slideshow_nav)
+ * - @a category: navigazione elementi multimediali di una categoria (page)
+ * 
+ * ##PERMESSI
+ * L'applicazione prevede il seguente livello di permesso: \n
+ * - can_admin: amministrazione completa del modulo
+ * 
+ * ##SHOWCASE
+ * Lo showcase mostra uno slideshow di immagini sullo sfondo. Per poter funzionare deve essere richiamato all'interno del template come ultimo elemento, 
+ * dopo il tag di chiusura del footer e prima di quello di chiusura del body. \n
+ * La visualizzazione di questo particolare slideshow necessita dell'impostazione di almeno una galleria come disponibile per la vista showcase.
+ * 
+ * ##SLIDESHOW
+ * Sono presenti due tipologie di slideshow: \n
+ * 1. slideshow automatizzato con bottoni avanti/indietro
+ * 2. slideshow con controlli di navigazione e preview immagini
+ * 
+ * La versione 1 viene richiamata con @a slideshow() ed ha come vista @a slideshow.php. I file di riferimento sono slideshow.css e gallery.js. \n
+ * La versione 2 viene richiamata con @a slideshowNavbar() ed ha come vista @a slideshow_nav.php. I file di riferimento sono slideshow_nav.css e slideshow_nav.js.
+ * 
+ * Lo slideshow può essere associato a una galleria specifica oppure a una galleria impostata come disponibile per la vista slideshow nell'interfaccia amministrativa. \n
+ * Nel caso in cui siano state impostate più gallerie per lo slideshow, viene visualizzata quella inserita più recentemente.
  */
 class gallery extends \Gino\Controller {
 
@@ -50,7 +72,7 @@ class gallery extends \Gino\Controller {
 
     /**
      * @brief Restituisce alcune proprietà della classe utili per la generazione di nuove istanze
-     * @return lista delle proprietà utilizzate per la creazione di istanze di tipo events (tabelle, css, viste, folders)
+     * @return lista delle proprietà dell'applicazione (tabelle, css, viste, cartelle)
      */
     public static function getClassElements() {
 
@@ -67,6 +89,8 @@ class gallery extends \Gino\Controller {
                 'box.php' => _('Template per l\'inserimento della pagine nel layout'),
                 'category.php' => _('Galleria immagini appartenenti a categoria'),
                 'showcase.php' => _('Showcase fisso su sfondo'),
+                'slideshow.php' => _('Slideshow'),
+            	'slideshow_nav.php' => _('Slideshow con controlli di navigazione'),
                 'index.php' => _('Lista gallerie'),
             ),
             "folderStructure"=>array (
@@ -87,6 +111,8 @@ class gallery extends \Gino\Controller {
         $list = array(
             "box" => array("label"=>_("Box presentazione gallerie"), "permissions"=>array()),
             "showcase" => array("label"=>_("Showcase fisso su sfondo"), "permissions"=>array()),
+            "slideshow" => array("label"=>_("Slideshow"), "permissions"=>array()),
+        	"slideshowNavbar" => array("label"=>_("Slideshow con controlli di navigazione"), "permissions"=>array()),
             "index" => array("label"=>_("Lista gallerie"), "permissions"=>array()),
         );
 
@@ -166,6 +192,85 @@ class gallery extends \Gino\Controller {
 
         return $view->render($dict);
     }
+    
+    /**
+     * @brief Imposta la galleria da mostrare nelle slideshow
+     * @param integer $ctg_id valore id della galleria
+     * @throws \Gino\Exception\Exception404
+     * @return object or null
+     */
+    private function setCtgForSlideshow($ctg_id) {
+    	
+    	if($ctg_id) {
+    		$category = new Category($ctg_id);
+    	}
+    	else {
+    		$categories = Category::objects(null, array('where' => 'slideshow=\'1\'', 'order' => 'id DESC', 'limit' => array(0, 1)));
+    		if(!$categories) {
+    			return null;
+    		}
+    		else {
+    			$category = $categories[0];
+    		}
+    	}
+    	
+    	if(!$category->id or !$category->slideshow) {
+    		throw new \Gino\Exception\Exception404();
+    	}
+    	else {
+    		return $category;
+    	}
+    }
+
+    /**
+     * @brief Vista slideshow
+     * @param integer $ctg_id valore id della galleria
+     * @return html
+     */
+    public function slideshow($ctg_id = null) {
+        
+        $category = $this->setCtgForSlideshow($ctg_id);
+        if(is_null($category)) {
+        	return null;
+        }
+        
+        $this->_registry->addJs($this->_class_www."/gallery.js");
+        $this->_registry->addCss($this->_class_www."/slideshow.css");
+
+        $view = new View($this->_view_dir);
+        $view->setViewTpl('slideshow');
+        $dict = array(
+            'section_id' => 'gallery-slideshow',
+            'category' => $category
+        );
+
+        return $view->render($dict);
+    }
+    
+    /**
+     * @brief Vista slideshow con controlli di navigazione
+     * @param integer $ctg_id valore id della galleria
+     * @return html
+     */
+    public function slideshowNavbar($ctg_id = null) {
+    
+    	$category = $this->setCtgForSlideshow($ctg_id);
+        if(is_null($category)) {
+        	return null;
+        }
+    
+    	$this->_registry->addJs($this->_class_www."/slideshow_nav.js");
+    	$this->_registry->addCss($this->_class_www."/slideshow_nav.css");
+    
+    	$view = new View($this->_view_dir);
+    	$view->setViewTpl('slideshow_nav');
+    	$dict = array(
+    			'section_id' => 'gallery-slideshow-nav',
+    			'category' => $category
+    	);
+    	
+    	return $view->render($dict);
+    }
 
     /**
      * @brief Vista vetrina galleria
@@ -175,7 +280,7 @@ class gallery extends \Gino\Controller {
     public function showcase() {
 
         $this->_registry->addJs($this->_class_www."/gallery.js");
-        $this->_registry->addCss($this->_class_www."/gallery.css");
+        $this->_registry->addCss($this->_class_www."/showcase.css");
 
         $view = new View($this->_view_dir);
 
@@ -226,7 +331,6 @@ class gallery extends \Gino\Controller {
 
         $document = new Document($view->render($dict));
         return $document();
-
     }
 
     /**
@@ -245,7 +349,7 @@ class gallery extends \Gino\Controller {
 
         $link_frontend = sprintf('<a href="%s">%s</a>', $this->linkAdmin(array(), 'block=frontend'), _('Frontend'));
         $link_video = sprintf('<a href="%s">%s</a>', $this->linkAdmin(array(), 'block=video'), _('Video'));
-        $link_ctg = sprintf('<a href="%s">%s</a>', $this->linkAdmin(array(), 'block=ctg'), _('Categorie'));
+        $link_ctg = sprintf('<a href="%s">%s</a>', $this->linkAdmin(array(), 'block=ctg'), _('Gallerie'));
         $link_dft = sprintf('<a href="%s">%s</a>', $this->linkAdmin(), _('Immagini'));
         $sel_link = $link_dft;
 
@@ -352,9 +456,9 @@ class gallery extends \Gino\Controller {
         $buffer = $admin_table->backOffice(
             'Category',
             array(
-                'list_display' => array('id', 'name', 'showcase'),
-                'list_title' => _("Elenco categorie"), 
-                'list_description' => "<p>"._('Ciascuna immagine inserita dovrà essere associato ad una categoria qui definita.')."</p>" .
+                'list_display' => array('id', 'name', 'showcase', 'slideshow'),
+                'list_title' => _("Elenco gallerie"), 
+                'list_description' => "<p>"._('Ciascuna immagine inserita dovrà essere associata ad una categoria qui definita.')."</p>" .
                                       "<p>"._('L\'eliminazione di una categoria NON comporta l\'eliminazione di tutte le immagini associate!')."</p>"
             ),
             array(
@@ -363,6 +467,5 @@ class gallery extends \Gino\Controller {
         );
 
         return $buffer;
-
     }
 }

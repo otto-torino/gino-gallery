@@ -3,7 +3,7 @@
  * @file class.Video.php
  * @brief Contiene la definizione ed implementazione della classe Gino.App.Gallery.Video.
  *
- * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
+ * @copyright 2014-2016 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
  * @authors Marco Guidotti guidottim@gmail.com
  * @authors abidibo abidibo@gmail.com
  */
@@ -16,16 +16,19 @@ use \Gino\EnumField;
 use \Gino\GImage;
 
 /**
+ * \ingroup gallery
  * @brief Classe tipo Gino.Model che rappresenta un media video
  *
- * @version 1.0.0
- * @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
+ * @version 1.2.0
+ * @copyright 2014-2016 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
  * @authors Marco Guidotti guidottim@gmail.com
  * @authors abidibo abidibo@gmail.com
  */
 class Video extends \Gino\Model {
 
     public static $table = 'gallery_video';
+    public static $columns;
+    
     protected static $_extension_img = array('jpg', 'jpeg', 'png');
 
     /**
@@ -38,17 +41,6 @@ class Video extends \Gino\Model {
 
         $this->_controller = new gallery();
         $this->_tbl_data = self::$table;
-
-        $this->_fields_label = array(
-            'category'=>_("Categoria"),
-            'platform'=>_("Piattaforma"),
-            'name'=>_("Nome"),
-            'description'=>_("Descrizione"),
-            'code'=>_("Codice"),
-            'width'=>_("Larghezza (px)"),
-            'height'=>_("Lunghezza (px)"),
-            'thumb'=>_("Thumbnail"),
-        );
 
         parent::__construct($id);
 
@@ -64,45 +56,92 @@ class Video extends \Gino\Model {
     }
 
     /**
-     * @brief Sovrascrive la struttura di default
-     *
-     * @see Gino.Model::structure()
-     * @param integer $id
-     * @return array, struttura
+     * @see Gino.Model::properties()
      */
-    public function structure($id) {
+    protected static function properties($model, $controller) {
+    
+    	$base_path = $controller->getBaseAbsPath();
+    
+    	$property['category'] = array(
+    		'add_related_url' => $controller->linkAdmin(array(), "block=ctg&insert=1"),
+    	);
+    	$property['thumb'] = array(
+    		'path' => $base_path,
+    		'add_path' => OS.'thumb'
+    	);
+    
+    	return $property;
+    }
+    
+    /**
+     * Struttura dei campi della tabella di un modello
+     *
+     * @return array
+     */
+    public static function columns() {
 
-        $structure = parent::structure($id);
-
-        $structure['category'] = new ForeignKeyField(array(
-            'name'=>'category',
-            'model'=>$this,
-            'required'=>true,
-            'lenght'=>3,
-            'foreign'=>'\Gino\App\Gallery\Category',
-            'foreign_order'=>'name ASC',
+    	$columns['id'] = new \Gino\IntegerField(array(
+    		'name' => 'id',
+    		'primary_key' => true,
+    		'auto_increment' => true,
+    		'max_lenght' => 11,
+    	));
+        $columns['category'] = new ForeignKeyField(array(
+            'name' => 'category',
+            'label' => _("Nome galleria"),
+            'required' => true,
+            'max_lenght' => 11,
+            'foreign' => '\Gino\App\Gallery\Category',
+            'foreign_order' => 'name ASC',
             'add_related' => true,
-            'add_related_url' =>$this->_controller->linkAdmin(array(), "block=ctg&insert=1")
+            'add_related_url' => null
+        ));
+        $columns['platform'] = new \Gino\BooleanField(array(
+        	'name' => 'platform',
+        	'label' => _('Piattaforma'),
+        	'required' => true,
+        	'choice' => array(1 => 'youtube', 2 => 'vimeo')
+        ));
+        $columns['name'] = new \Gino\CharField(array(
+        	'name' => 'name',
+        	'label' => _("Nome"),
+        	'required' => true,
+        	'max_lenght' => 255,
+        ));
+        $columns['description'] = new \Gino\TextField(array(
+        	'name' => 'description',
+        	'label' => _("Descrizione"),
+        	'required' => false
+        ));
+        $columns['code'] = new \Gino\CharField(array(
+        	'name' => 'code',
+        	'label' => _("Codice"),
+        	'required' => true,
+        	'max_lenght' => 255,
+        ));
+        $columns['width'] = new \Gino\IntegerField(array(
+        	'name' => 'width',
+        	'label' => _("Larghezza (px)"),
+        	'required' => true,
+        	'max_lenght' => 4,
+        ));
+        $columns['height'] = new \Gino\IntegerField(array(
+        	'name' => 'height',
+        	'label' => _("Lunghezza (px)"),
+        	'required' => true,
+        	'max_lenght' => 4,
+        ));
+        $columns['thumb'] = new ImageField(array(
+            'name' => 'thumb',
+            'label' => _("Thumbnail"),
+            'max_lenght' => 255,
+            'extensions' => self::$_extension_img,
+            'resize' => false,
+            'path' => null,
+            'add_path' => null
         ));
 
-        $structure['platform'] = new EnumField(array(
-            'name'=>'platform', 
-            'model'=>$this,
-            'enum'=>array(1 => 'youtube', 2 => 'vimeo')
-        ));
-
-        $base_path = $this->_controller->getBaseAbsPath();
-        $structure['thumb'] = new ImageField(array(
-            'name'=>'thumb',
-            'model'=>$this,
-            'lenght'=>100,
-            'extensions'=>self::$_extension_img,
-            'resize'=>false,
-            'path'=>$base_path,
-            'add_path'=>OS.'thumb'
-        ));
-
-        return $structure;
+        return $columns;
     }
 
     /**
@@ -124,7 +163,6 @@ class Video extends \Gino\Model {
             $thumb = $image->thumb($w, $h);
             return $thumb->getPath();
         }
-
     }
 
     /**
@@ -187,3 +225,4 @@ class Video extends \Gino\Model {
     }
 
 }
+Video::$columns=Video::columns();

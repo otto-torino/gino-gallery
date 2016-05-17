@@ -1,4 +1,1 @@
-/*
- * Class gallery configuration file
- */
-name:"gallery",version:"1.0.0",tbl_name:"gallery",instantiable:"0",description:"Gestore di gallerie multimediali",removable:"1",folders:"contents/gallery;contents/gallery/img;contents/gallery/thumb"
+name:"gallery",version:"1.2.0",tbl_name:"gallery",instantiable:"0",description:"Gestione gallerie di elementi multimediali, immagini e video",removable:"1",folders:"contents/gallery"
