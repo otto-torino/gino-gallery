@@ -6,10 +6,11 @@ var gallery = gallery || {};
  * @param object $options opzioni:
  *   - dom_content: string, valore id del container
  *   - interval_period: int, intervallo animazione automatica
+ *   - relative_path: string, path relativo del sito
  *   - screen_min_width: int, valore in pixel della larghezza minima richiesta per visualizzare lo slideshow;
  *   				come impostazione predefinita lo slideshow è sempre visibile a qualsiasi larghezza (value null) 
- *   - screen_margin_min: int, valore in pixel del margine superiore del container (dom_content) per un viewport minore/uguale al valore di screen_min_width
- *   - screen_margin_max: int, valore in pixel del margine superiore del container (dom_content) per un viewport maggiore del valore di screen_min_width
+ *   - screen_margin_min: int, valore in pixel del margine superiore del container (dom_content) quando lo slideshow scompare dalla visualizzazione;
+ *   				se viene impostata l'opzione screen_min_width, questo si verifica per un viewport minore/uguale al valore di screen_min_width
  * @return istanza di Showcase
  * @version 1.0.0
  * @copyright 2016 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
@@ -21,9 +22,9 @@ gallery.Showcase = new Class({
     options: {
         dom_content: null,
         interval_period: 4000,
+        relative_path: null,
         screen_min_width: null,
         screen_margin_min: null,
-        screen_margin_max: null,
     },
     initialize: function(ctgs, options) {
         var self = this;
@@ -70,13 +71,23 @@ gallery.Showcase = new Class({
         this.loadImage(0, {css: 'slide-active'});
     },
     
+    /**
+     * imposta il margin-top in pixel del container
+     * nelle pagine diverse dalla home page scrolla a metà pagina
+     */
     setContentMargin: function() {
         if(typeOf(this.dom.content) == 'element') {
             this.dom.content.setStyle('margin-top', (this.viewport.height - 150) + 'px');
             
-            if(window.location.pathname != '' && window.location.pathname != '#') {
-            	window.scroll(0, Math.abs(this.viewport.height / 2));
-            }
+            var self = this;
+            
+            if(self.options.relative_path != null) {
+            	var url = window.location.pathname.replace(self.options.relative_path, '');
+            	
+            	if(url != '' && url != '#' && url != '/' && url != '/#' ) {
+            		window.scroll(0, Math.abs(this.viewport.height / 2));
+            	}
+        	}
         }
     },
     responsive: function() {
@@ -88,16 +99,14 @@ gallery.Showcase = new Class({
     			self.dom.loading_bar_bkg.setStyle('display', 'block');
     			self.dom.prev_button.setStyle('display', 'block');
     			self.dom.next_button.setStyle('display', 'block');
-    			
-    			if(typeof self.options.screen_margin_max == 'number') {
-    				$(self.options.dom_content).setStyle('margin-top', self.options.screen_margin_max);
-    			}
+    			self.dom.category_button.setStyle('display', 'block');
     		}
     		else {
     			self.dom.list.setStyle('display', 'none');
     			self.dom.loading_bar_bkg.setStyle('display', 'none');
     			self.dom.prev_button.setStyle('display', 'none');
     			self.dom.next_button.setStyle('display', 'none');
+    			self.dom.category_button.setStyle('display', 'none');
     			
     			if(typeof self.options.screen_margin_min == 'number') {
     				$(self.options.dom_content).setStyle('margin-top', self.options.screen_margin_min);
