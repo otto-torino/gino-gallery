@@ -36,7 +36,6 @@
        	dom_content: 'main-container',
        	screen_min_width: null,
        	screen_margin_min: null,
-        screen_margin_max: null,
     });
 </script>
 <? endif ?>
