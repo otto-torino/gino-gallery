@@ -29,6 +29,7 @@ Modulo galleria per Gino CMS. Permette la gestione di video ed immagini organizz
 
 2014/12/11 | v 1.0.0 | Richiede gino 2.0.0  
 2016/05/17 | v 1.2.0 | Nuova versione  
+2016/05/24 | v 1.2.1 | Hotfix  
 
 # Copyright
 Copyright © 2005-2016 [Otto srl](http://www.otto.to.it), [MIT License](http://opensource.org/licenses/MIT)
