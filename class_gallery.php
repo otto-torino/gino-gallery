@@ -37,7 +37,7 @@ require_once('class.Video.php');
  * - @a showcase: showcase position fixed su sfondo (view)
  * - @a index: lista gallerie (page)
  * - @a slideshow: slideshow (view)
- * - @a slideshowNavbar: slideshow con controlli di navigazione (view slideshow_nav)
+ * - @a slideshowNavbar: slideshow con controlli di navigazione (view -> slideshow_nav)
  * - @a category: navigazione elementi multimediali di una categoria (page)
  * 
  * ##PERMESSI
@@ -59,6 +59,9 @@ require_once('class.Video.php');
  * 
  * Lo slideshow può essere associato a una galleria specifica oppure a una galleria impostata come disponibile per la vista slideshow nell'interfaccia amministrativa. \n
  * Nel caso in cui siano state impostate più gallerie per lo slideshow, viene visualizzata quella inserita più recentemente.
+ * 
+ * ##THUMBNAIL
+ * Le thumbnail vengono generate automaticamente dalla classe @ref Gino.GImage nel caso in cui non vengano inserite nei record.
  */
 class gallery extends \Gino\Controller {
 
@@ -87,7 +90,7 @@ class gallery extends \Gino\Controller {
             ),
             'views' => array(
                 'box.php' => _('Template per l\'inserimento della pagine nel layout'),
-                'category.php' => _('Galleria immagini appartenenti a categoria'),
+                'category.php' => _('Galleria media di una categoria'),
                 'showcase.php' => _('Showcase fisso su sfondo'),
                 'slideshow.php' => _('Slideshow'),
             	'slideshow_nav.php' => _('Slideshow con controlli di navigazione'),
@@ -103,7 +106,7 @@ class gallery extends \Gino\Controller {
     }
 
     /**
-     * @brief Metodi pubblici disponibili per inserimento in layout (non presenti nel file events.ini) e menu (presenti nel file events.ini)
+     * @brief Metodi pubblici disponibili per inserimento in layout (non presenti nel file ini) e menu (presenti nel file ini)
      * @return lista metodi NOME_METODO => array('label' => LABEL, 'permissions' = PERMISSIONS)
      */
     public static function outputFunctions() {
@@ -114,9 +117,27 @@ class gallery extends \Gino\Controller {
             "slideshow" => array("label"=>_("Slideshow"), "permissions"=>array()),
         	"slideshowNavbar" => array("label"=>_("Slideshow con controlli di navigazione"), "permissions"=>array()),
             "index" => array("label"=>_("Lista gallerie"), "permissions"=>array()),
+        	"category" => array("label"=>_("Galleria media di una categoria"), "permissions"=>array()),
         );
 
         return $list;
+    }
+    
+    public static function setBreadCrumbs() {
+    	
+    	$items = array(
+    			'unit' => array(
+    					'class' => 'Unit',
+    					'parent' => '',
+    			),
+    			'ute' => array(
+    					'class' => 'Ute',
+    					'parent' => 'unit'
+    			)
+    	);
+    	
+    	$bc = new \Gino\BreadCrumbs();
+    	$bc ->setItems($id, $leaf_field, $items);
     }
 
     /**
@@ -172,7 +193,7 @@ class gallery extends \Gino\Controller {
         $categories = Category::objects();
 
         foreach($categories as $c) {
-            $images = Image::objects(null, array('where' => "category='".$c->id."'", "limit" => array(0, 1)));
+            $images = Image::objects(null, array('where' => "category='".$c->id."'", "limit" => $this->_db->limit(1,0)));
             if(count($images)) {
                 $ctgs[] = array(
                     'name' => \Gino\htmlChars($c->name),
@@ -291,7 +312,8 @@ class gallery extends \Gino\Controller {
         $dict = array(
             'section_id' => 'gallery-showcase',
             'ctgs' => $ctgs,
-            'active_ctg' => $active_ctg
+            'active_ctg' => $active_ctg,
+        	'relative_path' => SITE_WWW
         );
 
         return $view->render($dict);
@@ -318,7 +340,20 @@ class gallery extends \Gino\Controller {
         $videos = Video::objects(null, array(
             'where' => "category='".$category->id."'"
         ));
-
+        
+		// Breadcrumps
+		if(class_exists('\Gino\BreadCrumbs', false)) {
+			$breadcrumbs = new \Gino\BreadCrumbs($this->_class_name);
+			$breadcrumbs->setItems(array(
+				array('label' => _("Gallerie"), 'link' => $this->link('gallery', 'index')), 
+				array('label' => $category->ml('name'), 'current' => true)
+			));
+			$bc = $breadcrumbs->render();
+		} else {
+			$bc = null;
+		}
+        // /Breadcrumps
+        
         $view = new View($this->_view_dir);
         $view->setViewTpl('category');
         $dict = array(
@@ -326,7 +361,8 @@ class gallery extends \Gino\Controller {
             'title' => _('Foto'),
             'images' => $images,
             'videos' => $videos,
-            'category' => $category
+            'category' => $category, 
+        	'breadcrumbs' => $bc
         );
 
         $document = new Document($view->render($dict));

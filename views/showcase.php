@@ -34,8 +34,9 @@
 
     var showcase = new gallery.Showcase(ctgs, {
        	dom_content: 'main-container',
+       	relative_path: '<?= $relative_path ?>',
        	screen_min_width: null,
-       	screen_margin_min: null,
+       	screen_margin_min: null
     });
 </script>
 <? endif ?>

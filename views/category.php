@@ -9,15 +9,21 @@
 * - **images**: array, array di immagini Gino.App.Gallery.Image
 * - **videos**: array, array di video Gino.App.Gallery.Video
 * - **ctg**: \Gino\App\Gallery\Category oggetto categoria Gino.App.Gallery.Category
+* - **breadcrumbs**: string
 *
 * @version 1.0.0
-* @copyright 2014 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
+* @copyright 2014-2016 Otto srl MIT License http://www.opensource.org/licenses/mit-license.php
 * @author Marco Guidotti guidottim@gmail.com
 * @author abidibo abidibo@gmail.com
 */
 ?>
 <? namespace Gino\App\Gallery; ?>
 <? //@cond no-doxygen ?>
+<!-- Breadcrumbs -->
+<? if($breadcrumbs): ?>
+	<?= $breadcrumbs ?>
+<? endif ?>
+
 <section id="gallery-category">
   <h1><?= \Gino\htmlChars($category->ml('name')) ?></h1>
   <div id="gallery-container"></div>
@@ -27,7 +33,7 @@
     var mg_instance = new moogallery('gallery-container', [
     <? foreach($videos as $video): ?>
         {
-            thumb: '<?= $video->thumbPath(100, 100) ?>',
+            thumb: '<?= $video->thumbPath(120, 120) ?>',
         <? if($video->platform == 1): ?>
             youtube: '<?= $video->code ?>',
         <? else: ?>
@@ -42,7 +48,7 @@
     <? endforeach ?>
     <? foreach($images as $image): ?>
         {
-            thumb: '<?= $image->thumbPath() ?>',
+            thumb: '<?= $image->thumbPath(null, 120) ?>',
             img: '<?= $image->path() ?>',
             title: '<?= \Gino\jsVar($image->ml('name')) ?>',
             description: '<?= \Gino\jsVar($image->ml('description')) ?>',

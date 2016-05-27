@@ -93,10 +93,18 @@ class Category extends \Gino\Model {
 
     /**
      * @brief Immagini della categoria
+     * 
+     * @param array $options array associativo di opzioni
+    *   - @b order (string): ordinamento
+    *   - @b limit (array): limite risultati
      * @return array di oggetti @ref Gino.App.Gallery.Image
      */
-    public function getImages() {
-        return Image::objects(null, array('where' => "category='".$this->id."'"));
+    public function getImages($options=array()) {
+    	
+    	$order = \Gino\gOpt('order', $options, 'id ASC');
+    	$limit = \Gino\gOpt('limit', $options, null);
+    	
+        return Image::objects(null, array('where' => "category='".$this->id."'", 'order' => $order, 'limit' => $limit));
     }
 
 }
