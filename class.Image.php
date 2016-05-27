@@ -122,7 +122,7 @@ class Image extends \Gino\Model {
         ));
 		$columns['thumb'] = new ImageField(array(
             'name' => 'thumb',
-        	'label' => _("Thumbnail"),
+        	'label' => array(_("Thumbnail"), _("la thumbnail viene generata automaticamente nel caso in cui non venga inserita")),
             'max_lenght' => 255,
             'extensions' => self::$_extension_img,
             'resize' => false,
@@ -151,7 +151,6 @@ class Image extends \Gino\Model {
      */
     public function thumbPath($w = 100, $h = 100) {
         if($this->thumb) {
-
             return $this->_controller->getBasePath().'/thumb/'.$this->thumb;
         }
         else {
